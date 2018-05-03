@@ -29,9 +29,7 @@ namespace Lambda.Firebase.Authorizer
         {
             try
             {
-                // validate the token -- checking auth should be filled in, current function just returns true for all tokens
-                var token = authEvent.AuthorizationToken;
-                (bool authorized, string username) = await CheckAuthorization(token);
+                (bool authorized, string username) = await CheckAuthorization(authEvent.AuthorizationToken);
 
                 return new APIGatewayCustomAuthorizerResponse
                 {
@@ -72,25 +70,15 @@ namespace Lambda.Firebase.Authorizer
 
             try
             {
-                var user = new JwtSecurityTokenHandler().ValidateToken(token, validationParameters,
-                    out SecurityToken validatedToken);
+                var user = new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out SecurityToken _);
 
                 return (true, user.Identity.Name);
             }
-            catch
+            catch(Exception e)
             {
-                return (false, string.Empty);
+                Console.WriteLine("Error authorizing request. " + e.Message);
+                return (false, string.Empty); ;
             }
-        }
-
-        public struct AuthorizerResult
-        {
-            [JsonProperty("principalId")]
-            public string PrincipalId { get; set; }
-
-            [JsonProperty("policyDocument")]
-            public APIGatewayCustomAuthorizerPolicy Policy { get; set; }
-
         }
 
     }
